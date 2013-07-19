@@ -14,12 +14,30 @@
  SUBTLE POINT: A careful analysis would keep track of the comparisons made in identifying the median of the three candidate elements. You should NOT do this. That is, as in the previous two problems, you should simply add m−1 to your running total of comparisons every time you recurse on a subarray with length m.
  **/
 
-// NumComparison :: 164256
+// NumComparison :: 151987
 
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <algorithm>
 using namespace std;
+
+int findMedian (vector<int> &numList, int lower, int upper, int mid)
+{
+    vector<int> tmpList;
+    tmpList.push_back(numList[lower]);
+    tmpList.push_back(numList[upper]);
+    tmpList.push_back(numList[mid]);
+    
+    sort (tmpList.begin(), tmpList.end());
+    
+    if (tmpList[1] == numList[lower])
+        return lower;
+    else if (tmpList[1] == numList[upper])
+        return upper;
+    else
+        return mid;
+}
 
 void QuickSort (vector<int> &numList, int lower, int upper,
                 unsigned int &numComp)
@@ -27,11 +45,20 @@ void QuickSort (vector<int> &numList, int lower, int upper,
     if (upper<=lower)
         return;
     
+    int numElements = (upper-lower+1);
+    int mid;
+    if ((numElements %2) == 0)
+        mid = (numElements/2)-1;
+    else
+        mid = (numElements/2);
+    
+    mid = findMedian (numList, lower, upper, mid);
+    
     int tmp=0;
     /* Always use the last element as pivot */
     tmp = numList[lower];
-    numList[lower] = numList[upper];
-    numList[upper] = tmp;
+    numList[lower] = numList[mid];
+    numList[mid] = tmp;
     
     int pivot = numList[lower];
     int i=lower;
