@@ -14,7 +14,7 @@
  SUBTLE POINT: A careful analysis would keep track of the comparisons made in identifying the median of the three candidate elements. You should NOT do this. That is, as in the previous two problems, you should simply add m−1 to your running total of comparisons every time you recurse on a subarray with length m.
  **/
 
-// NumComparison :: 151987
+// NumComparison :: 138382
 
 #include <iostream>
 #include <fstream>
@@ -48,9 +48,9 @@ void QuickSort (vector<int> &numList, int lower, int upper,
     int numElements = (upper-lower+1);
     int mid;
     if ((numElements %2) == 0)
-        mid = (numElements/2)-1;
+        mid = lower + (numElements/2)-1;
     else
-        mid = (numElements/2);
+        mid = lower + (numElements/2);
     
     mid = findMedian (numList, lower, upper, mid);
     
@@ -87,8 +87,9 @@ int main()
 {
     vector<int> numList;
     fstream fread ("QuickSort.txt");
+    //fstream fread ("qs.txt");
     
-    int num; int count = 0;
+    int num;
     unsigned int numComparisons =0;
     
     while (!fread.eof())

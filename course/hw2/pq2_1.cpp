@@ -21,7 +21,7 @@
  (We do not require you to submit your code, so feel free to use the programming language of your choice, just type the numeric answer in the following space.)
  **/
 
-// NumComparison :: 162404
+// NumComparison :: 162085
 
 #include <iostream>
 #include <fstream>
@@ -62,6 +62,7 @@ int main()
 {
     vector<int> numList;
     fstream fread ("QuickSort.txt");
+    //fstream fread ("qs.txt");
     
     int num; int count = 0;
     unsigned int numComparisons =0;
@@ -73,6 +74,11 @@ int main()
     }
     
     fread.close();
+    
+    for (size_t i=0; i<numList.size(); i++)
+        cout << numList[i] << " ";
+    cout << endl;
+
         
     QuickSort (numList, 0, numList.size()-1, numComparisons);
     
