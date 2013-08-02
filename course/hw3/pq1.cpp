@@ -12,13 +12,13 @@
 #include <map>
 #include <list>
 #include <utility>
-#include <random>
+//#include <random>
 #include <time.h>
 using namespace std;
 
 
-std::default_random_engine generator;
-std::uniform_int_distribution<int> distribution(1, 200);
+//std::default_random_engine generator;
+//std::uniform_int_distribution<int> distribution(1, 200);
 
 void tokenizeBySpace (string line, int &startVertex, list<int> &edgeList)
 {
@@ -142,12 +142,12 @@ void graph::mergeVertices(int vertA, int vertB)
     removeSelfLoops(vertA);
 }
 
-int getRandomNumber ()
+/*int getRandomNumber ()
 {
     int randNum =  distribution(generator);
     distribution.reset();
     return randNum;
-}
+}*/
 
 int graph::findMinCut()
 {
@@ -180,7 +180,11 @@ int graph::findMinCut()
 
 graph::~graph()
 {
-    
+    for (map<int, list<int> >::iterator mapIter = adjList.begin();mapIter != adjList.end(); mapIter++)
+    {
+        mapIter->second.clear();
+    }
+    adjList.clear();
 }
 
 int main()
