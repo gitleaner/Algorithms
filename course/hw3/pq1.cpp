@@ -12,8 +12,13 @@
 #include <map>
 #include <list>
 #include <utility>
+//#include <random>
 #include <time.h>
 using namespace std;
+
+
+//std::default_random_engine generator;
+//std::uniform_int_distribution<int> distribution(1, 200);
 
 void tokenizeBySpace (string line, int &startVertex, list<int> &edgeList)
 {
@@ -35,7 +40,9 @@ void tokenizeBySpace (string line, int &startVertex, list<int> &edgeList)
 class graph {
 private:
     map <int, list<int> > adjList;
+    
     int minCut;
+    
     int numEdges()
     {
         int countEdges = 0;
@@ -48,43 +55,37 @@ private:
     
     int numEdges(int vertA)
     {
-        int countEdges = 0;
         return adjList[vertA].size();
+    }
+    
+    int findVertex (int vertA, int position)
+    {
+        list<int>::iterator iter=adjList[vertA].begin();
+        for (int i=0; i<position; i++)
+            iter++;
+        return *iter;
     }
     
     int numVertices()
     {
         return adjList.size();
     }
-    
-    bool edgeExist (int vertA, int vertB)
-    {
-        for (map<int, list<int> >::iterator iter=adjList.begin(); iter != adjList.end(); iter++)
-        {
-            if (iter->first == vertA)
-            {
-                for (list<int>::iterator locIter=iter->second.begin(); locIter != iter->second.end(); locIter++)
-                {
-                    if (*locIter == vertB)
-                        return true;
-                }
-            }
-        }
-        return false;
-    }
+        
 public:
     graph();
     ~graph();
     void print();
     int findMinCut();
-    void removeSelfLoops();
+    void removeSelfLoops(int vertA);
     void mergeVertices(int vertA, int vertB);
+    void replaceFromVertToVert (int fromVert, int toVert);
 };
 
 graph::graph()
 {
     /* Initialize graph here */
     fstream fread("kargerMinCut.txt");
+    //fstream fread("1.txt");
     list<int> edgeList;
     int startVertex;
     
@@ -96,7 +97,6 @@ graph::graph()
         adjList.insert (make_pair(startVertex, edgeList));
         edgeList.clear();
     }
-    print();
 }
 
 void graph::print()
@@ -114,17 +114,19 @@ void graph::print()
     cout << " Min Cut :: " << minCut << endl;
 }
 
-void graph::removeSelfLoops()
+void graph::removeSelfLoops(int vertA)
+{
+    adjList[vertA].remove(vertA);
+}
+
+void graph::replaceFromVertToVert (int fromVert, int toVert)
 {
     for (map<int, list<int> >::iterator iter=adjList.begin(); iter != adjList.end(); iter++)
     {
-        int startVertex = iter->first;
-        list<int> &edgeList = iter->second;
-        for (list<int>::iterator locIter=edgeList.begin(); locIter != edgeList.end(); locIter++)
+        for (list<int>::iterator locIter=iter->second.begin(); locIter != iter->second.end(); locIter++)
         {
-            if (*locIter == startVertex)
-                edgeList.erase(locIter);
-                
+            if (*locIter == fromVert)
+                *locIter = toVert;
         }
     }
 }
@@ -136,47 +138,59 @@ void graph::mergeVertices(int vertA, int vertB)
     
     edgeListA.insert (edgeListA.end(), edgeListB.begin(), edgeListB.end());
     adjList.erase(vertB);
-    removeSelfLoops();
+    replaceFromVertToVert(vertB, vertA);
+    removeSelfLoops(vertA);
 }
+
+/*int getRandomNumber ()
+{
+    int randNum =  distribution(generator);
+    distribution.reset();
+    return randNum;
+}*/
 
 int graph::findMinCut()
 {
-    int vertA = 0, vertB = 0;
-    
+    int vertA, vertB;
     while (numVertices() > 2)
     {
-        bool foundEdge = false;
-        while (!foundEdge)
-        {
-            vertA = rand() % 200;
-            if (adjList.find(vertA))
-            {
-                vertB = rand() % numEdges(vertA);
-                if (edgeExist(vertA, vertB) || edgeExist(vertB, vertA))
-                {
-                    foundEdge = true;
-                    cout << "Merging (" << vertA << "," << vertB << ") " ;
-                    // Found the random edge, contract now
-                    mergeVertices(vertA, vertB);
-                    cout << " Num Vertices :: " << numVertices() << endl;
-                }
-            }
-        }
+        int randIndexA =  (rand())%numVertices();
+        int mapIterCount=1;
+        map<int, list<int> >::iterator mapIter = adjList.begin();
+        for (mapIter=adjList.begin(); ((mapIter != adjList.end()) && (mapIterCount < randIndexA)); mapIter++)
+            mapIterCount++;
+        vertA = mapIter->first;
+        
+        //cout << " NumVertices = " << numVertices() << " NumEdges = " << numEdges(vertA) << endl;
+        
+        int randIndexB = (rand())%numEdges(vertA);
+        int listIterCount=1;
+        list<int>::iterator listIter = adjList[vertA].begin();
+        for (listIter=adjList[vertA].begin(); ((listIter != adjList[vertA].end()) && (listIterCount < randIndexB)); listIter++)
+            listIterCount++;
+        vertB = *listIter;
+        
+        mergeVertices (vertA, vertB);
+        //cout << "RandA = " << randIndexA << " " << "RandB = " << randIndexB << endl;
+        cout << "Merging (" << vertA << "," << vertB  << "), " << " Num Vertices :: "  << numVertices() << endl;
     }
-    
-    minCut = numEdges();
+    minCut = numEdges()/2;
     return minCut;
 }
 
 graph::~graph()
 {
-    
+    for (map<int, list<int> >::iterator mapIter = adjList.begin();mapIter != adjList.end(); mapIter++)
+    {
+        mapIter->second.clear();
+    }
+    adjList.clear();
 }
 
 int main()
 {
+    srand (time(NULL));
     graph g;
-    srand(time(NULL));
     g.findMinCut();
     g.print();
     return 1;
