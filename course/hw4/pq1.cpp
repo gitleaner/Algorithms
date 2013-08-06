@@ -221,6 +221,7 @@ void graph::replaceVertexWithFinishTimes()
     adjList = tmpAdjList ;
 }
 
+
 void graph::dfs_loop_rev()
 {
     initializeGraphVars();
