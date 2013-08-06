@@ -67,6 +67,16 @@ private:
         return countEdges;
     }
     
+    int numEdgesRev()
+    {
+        int countEdges = 0;
+        for (map<int, list<int> >::iterator iter=adjListRev.begin(); iter != adjListRev.end(); iter++)
+        {
+            countEdges += iter->second.size();
+        }
+        return countEdges;
+    }
+    
     int numEdges(int vertA)
     {
         return adjList[vertA].size();
@@ -77,20 +87,9 @@ private:
         return adjList.size();
     }
     
-    bool edgeExist (int vertA, int vertB)
+    int numVerticesRev()
     {
-        for (map<int, list<int> >::iterator iter=adjList.begin(); iter != adjList.end(); iter++)
-        {
-            if (iter->first == vertA)
-            {
-                for (list<int>::iterator locIter=iter->second.begin(); locIter != iter->second.end(); locIter++)
-                {
-                    if (*locIter == vertB)
-                        return true;
-                }
-            }
-        }
-        return false;
+        return adjListRev.size();
     }
     
     void printFinishTimes()
@@ -116,7 +115,8 @@ public:
     void printGraphReverse();
     void dfs_loop_rev();
     void dfs_loop();
-    void dfs(int startVertex);
+    void dfs(int startVertex, int curSrcVertex);
+    void dfsRev(int startVertex, int curSrcVertex);
     void replaceVertexWithFinishTimes();
 };
 
@@ -126,6 +126,7 @@ graph::graph()
     fstream fread("SCC.txt");
     int edge=0;
     list<int> edgeList;
+    list<int> emptyEdgeList;
     int startVertex; int count=0;
     
     while (!fread.eof())
@@ -142,6 +143,7 @@ graph::graph()
         {
             edgeList.push_back (edge);
             adjList.insert (make_pair(startVertex, edgeList));
+            adjListRev.insert (make_pair(startVertex, emptyEdgeList));
             discovered.insert (make_pair(startVertex, false));
             finishTimes.insert(make_pair(startVertex, 0));
             leaderOfThisVertex.insert (make_pair(startVertex, -1));
@@ -177,60 +179,80 @@ void graph::printGraphReverse()
         cout << endl;
     }
     
-    cout << " Num Edges :: " << numEdges() << endl;
-    cout << " Num Vertices :: "  << numVertices() << endl;
+    cout << " Num Edges :: " << numEdgesRev() << endl;
+    cout << " Num Vertices :: "  << numVerticesRev() << endl;
 }
 
 
 void graph::reverseGraph()
 {
-    list<int> reverseEdgeList;
+    //list<int> reverseEdgeList;
     for (map<int, list<int> >::iterator mapIter=adjList.begin(); mapIter != adjList.end(); mapIter++)
     {
         for (list<int>::iterator listIter=mapIter->second.begin(); listIter!=mapIter->second.end(); listIter++)
         {
-            if (adjListRev.find(*listIter) == adjListRev.end())
-            {
-                reverseEdgeList.push_back(mapIter->first);
-                adjListRev.insert(make_pair(*listIter, reverseEdgeList));
-                reverseEdgeList.clear();
-            }
-            else
-            {
-                adjListRev[*listIter].push_back(mapIter->first);
-            }
+            adjListRev[*listIter].push_back(mapIter->first);
         }
     }
 }
 
-void replaceVertexWithFinishTimes()
+void graph::replaceVertexWithFinishTimes()
 {
+    for (map<int, list<int> >::iterator mIter = adjList.begin(); mIter != adjList.end(); mIter++)
+    {
+        for (list<int>::iterator lIter = mIter->second.begin(); lIter != mIter->second.end(); lIter++)
+        {
+            *lIter = finishTimes[*lIter];
+        }
+    }
     map<int, list<int> > tmpAdjList;
     
     for (map<int, int>::iterator fIter = finishTimes.begin(); fIter != finishTimes.end(); fIter++)
     {
-        tmpAdjList.insert (make_pair(fIter->second, adjList[fIter->first]));
+        tmpAdjList.insert (make_pair(fIter->second, adjList[fIter->second]));
     }
     
+    for (map<int, list<int> >::iterator mapIter = adjList.begin();mapIter != adjList.end(); mapIter++)
+    {
+        mapIter->second.clear();
+    }
+    adjList.clear();
+    
+    adjList = tmpAdjList ;
 }
 
 void graph::dfs_loop_rev()
 {
     initializeGraphVars();
     vertexCount = 0;
-    for (map<int, list<int> >::reverse_iterator mIter=adjListRev.rbegin(); mIter != adjListRev.rend(); mIter++)
+    for (int i=adjListRev.size(); i>=1 ; i--)
     {
-        if (!discovered[mIter->first])
-            dfs(mIter->first, mIter->first);
+        if (!discovered[i])
+            dfsRev(i,i);
     }
     printFinishTimes();
+}
+
+void graph::dfsRev(int startVertex, int curSrcVertex)
+{
+    discovered[startVertex] = true;
+    leaderOfThisVertex[startVertex] = curSrcVertex;
+    for (list<int>::iterator listIter = adjListRev[startVertex].begin(); listIter != adjListRev[startVertex].end(); listIter++)
+    {
+        if (!discovered[*listIter])
+        {
+            dfs (*listIter, curSrcVertex);
+        }
+    }
+    vertexCount++;
+    finishTimes[startVertex] = vertexCount;
 }
 
 void graph::dfs_loop()
 {
     initializeGraphVars();
     vertexCount = 0;
-    cout << adjList.size() << endl; int x; cin >> x;
+    
     for (map<int, list<int> >::reverse_iterator mIter = adjList.rbegin(); mIter != adjList.rend(); mIter++)
     {
         if (!discovered[mIter->first])
@@ -256,15 +278,22 @@ void graph::dfs(int startVertex, int curSrcVertex)
 
 graph::~graph()
 {
-    
+    for (map<int, list<int> >::iterator mapIter = adjList.begin();mapIter != adjList.end(); mapIter++)
+    {
+        mapIter->second.clear();
+    }
+    adjList.clear();
 }
 
 int main()
 {
     graph g;
-    //g.print();
-    //g.printGraphReverse();
+    g.print();  int x; cin >> x;
+    g.printGraphReverse();
     g.dfs_loop_rev();
-    g.dfs_loop();
+    g.replaceVertexWithFinishTimes();
+    g.print();
+    //g.dfs_loop();
     return 1;
 }
+
