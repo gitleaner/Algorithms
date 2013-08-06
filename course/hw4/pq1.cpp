@@ -194,6 +194,12 @@ void graph::reverseGraph()
             adjListRev[*listIter].push_back(mapIter->first);
         }
     }
+    
+    for (map<int, list<int> >::iterator mIter=adjListRev.begin(); mIter != adjListRev.end(); mIter++)
+    {
+        if (mIter->second.empty())
+            adjListRev.erase(mIter->first);
+    }
 }
 
 void graph::replaceVertexWithFinishTimes()
@@ -291,9 +297,9 @@ int main()
     graph g;
     g.print();  int x; cin >> x;
     g.printGraphReverse();
-    g.dfs_loop_rev();
-    g.replaceVertexWithFinishTimes();
-    g.print();
+    //g.dfs_loop_rev();
+    //g.replaceVertexWithFinishTimes();
+    //g.print();
     //g.dfs_loop();
     return 1;
 }
